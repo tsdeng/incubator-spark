@@ -261,11 +261,12 @@ private[spark] class CoarseMesosSchedulerBackend(
     scheduler.error(message)
   }
 
-  override def stop() {
-    super.stop()
+  override def stop() = {
+    val executorsStats = super.stop()
     if (driver != null) {
       driver.stop()
     }
+    executorsStats
   }
 
   override def frameworkMessage(d: SchedulerDriver, e: ExecutorID, s: SlaveID, b: Array[Byte]) {}

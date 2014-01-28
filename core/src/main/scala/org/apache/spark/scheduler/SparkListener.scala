@@ -21,6 +21,7 @@ import java.util.Properties
 import org.apache.spark.util.{Utils, Distribution}
 import org.apache.spark.{Logging, SparkContext, TaskEndReason}
 import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.scheduler.cluster.CoarseGrainedClusterMessages.ExecutorFinalState
 
 sealed trait SparkListenerEvents
 
@@ -41,6 +42,9 @@ case class SparkListenerJobStart(job: ActiveJob, properties: Properties = null)
      extends SparkListenerEvents
 
 case class SparkListenerJobEnd(job: ActiveJob, jobResult: JobResult)
+     extends SparkListenerEvents
+
+case class SparkListenerExecutorsStopped(stats:Option[Iterable[ExecutorFinalState]])
      extends SparkListenerEvents
 
 trait SparkListener {
@@ -79,6 +83,11 @@ trait SparkListener {
    * Called when a job ends
    */
   def onJobEnd(jobEnd: SparkListenerJobEnd) { }
+
+  /**
+   * Called when executors are stopped, for getting stats from executors
+   */
+  def onExecutorsStopped(executorsStopped:SparkListenerExecutorsStopped) { }
 
 }
 

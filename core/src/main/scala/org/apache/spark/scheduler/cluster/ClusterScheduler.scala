@@ -29,6 +29,7 @@ import org.apache.spark._
 import org.apache.spark.TaskState.TaskState
 import org.apache.spark.scheduler._
 import org.apache.spark.scheduler.SchedulingMode.SchedulingMode
+import org.apache.spark.scheduler.cluster.CoarseGrainedClusterMessages.ExecutorFinalState
 
 /**
  * The main TaskScheduler implementation, for running tasks on a cluster. Clients should first call
@@ -345,13 +346,14 @@ private[spark] class ClusterScheduler(val sc: SparkContext)
   }
 
   override def stop() {
+    var executorStats:Option[Iterable[ExecutorFinalState]] = None
     if (backend != null) {
-      backend.stop()
+     executorStats = backend.stop()
     }
     if (taskResultGetter != null) {
       taskResultGetter.stop()
     }
-
+    dagScheduler.executorsStopped(executorStats)
     // sleeping for an arbitrary 5 seconds : to ensure that messages are sent out.
     // TODO: Do something better !
     Thread.sleep(5000L)

@@ -33,4 +33,5 @@ class StageInfo(
   val name = stage.name
   val numPartitions = stage.numPartitions
   val numTasks = stage.numTasks
+  override def toString = "rddName(" + rddName + "), stageName(" + name + "), " + "numPartitions(" + numPartitions + "), " + "submissionTime(" + submissionTime + "), " + "completionTime(" + completionTime + ")"
 }

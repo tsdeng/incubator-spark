@@ -56,13 +56,14 @@ private[spark] class SparkDeploySchedulerBackend(
     client.start()
   }
 
-  override def stop() {
+  override def stop() = {
     stopping = true
-    super.stop()
+    val executorStats = super.stop()
     client.stop()
     if (shutdownCallback != null) {
       shutdownCallback(this)
     }
+    executorStats
   }
 
   override def connected(appId: String) {

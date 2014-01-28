@@ -24,6 +24,7 @@ import scala.collection.mutable.Map
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.scheduler.cluster.CoarseGrainedClusterMessages.ExecutorFinalState
 
 /**
  * Types of events that can be handled by the DAGScheduler. The DAGScheduler uses an event queue
@@ -69,6 +70,8 @@ private[scheduler]
 case class ExecutorGained(execId: String, host: String) extends DAGSchedulerEvent
 
 private[scheduler] case class ExecutorLost(execId: String) extends DAGSchedulerEvent
+
+private[scheduler] case class ExecutorsStopped(stats:Option[Iterable[ExecutorFinalState]]) extends DAGSchedulerEvent
 
 private[scheduler]
 case class TaskSetFailed(taskSet: TaskSet, reason: String) extends DAGSchedulerEvent
