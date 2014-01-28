@@ -94,7 +94,7 @@ class StatsReportListener extends SparkListener with Logging {
 
     //shuffle write
     showBytesDistribution("shuffle bytes written:",(_,metric) => metric.shuffleWriteMetrics.map{_.shuffleBytesWritten})
-
+    showBytesDistribution("hdfsBytesRead: " , (_,metric) => metric.fileSystemBytesRead.get("hdfs"))
     //fetch & io
     showMillisDistribution("fetch wait time:",(_, metric) => metric.shuffleReadMetrics.map{_.fetchWaitTime})
     showBytesDistribution("remote bytes read:", (_, metric) => metric.shuffleReadMetrics.map{_.remoteBytesRead})

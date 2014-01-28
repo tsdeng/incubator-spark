@@ -52,6 +52,8 @@ class TaskMetrics extends Serializable {
    * If this task writes to shuffle output, metrics on the written shuffle data will be collected here
    */
   var shuffleWriteMetrics: Option[ShuffleWriteMetrics] = None
+
+  var fileSystemBytesRead: Map[String,Long] = _
 }
 
 object TaskMetrics {

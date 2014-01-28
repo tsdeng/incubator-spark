@@ -30,6 +30,7 @@ import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.scheduler._
 import org.apache.spark.storage.{StorageLevel, TaskResultBlockId}
 import org.apache.spark.util.Utils
+import org.apache.hadoop.fs.FileSystem
 
 /**
  * Spark executor used with Mesos and the standalone scheduler.
@@ -224,6 +225,10 @@ private[spark] class Executor(
           m.executorDeserializeTime = (taskStart - startTime).toInt
           m.executorRunTime = (taskFinish - taskStart).toInt
           m.jvmGCTime = gcTime - startGCTime
+          m.fileSystemBytesRead = FileSystem.getAllStatistics().foldLeft(Map[String,Long]()){ (res,t) =>
+            val scheme = t.getScheme()
+            res + (scheme -> (t.getBytesRead + res.getOrElse(scheme,0L)))
+          }
         }
         // TODO I'd also like to track the time it takes to serialize the task results, but that is
         // huge headache, b/c we need to serialize the task metrics first.  If TaskMetrics had a
