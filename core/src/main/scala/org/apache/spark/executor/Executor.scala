@@ -225,10 +225,12 @@ private[spark] class Executor(
           m.executorDeserializeTime = (taskStart - startTime).toInt
           m.executorRunTime = (taskFinish - taskStart).toInt
           m.jvmGCTime = gcTime - startGCTime
-          m.fileSystemBytesRead = FileSystem.getAllStatistics().foldLeft(Map[String,Long]()){ (res,t) =>
-            val scheme = t.getScheme()
-            res + (scheme -> (t.getBytesRead + res.getOrElse(scheme,0L)))
-          }
+          m.fileSystemBytesRead = FileSystem.getAllStatistics().map{ (stats) =>
+            (stats.getScheme -> stats.getBytesRead)
+          }.toMap
+          m.fileSystemBytesWritten = FileSystem.getAllStatistics().map{ (stats) =>
+            (stats.getScheme -> stats.getBytesWritten)
+          }.toMap
         }
         // TODO I'd also like to track the time it takes to serialize the task results, but that is
         // huge headache, b/c we need to serialize the task metrics first.  If TaskMetrics had a
