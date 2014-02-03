@@ -225,10 +225,10 @@ private[spark] class Executor(
           m.executorDeserializeTime = (taskStart - startTime).toInt
           m.executorRunTime = (taskFinish - taskStart).toInt
           m.jvmGCTime = gcTime - startGCTime
-          m.fileSystemBytesRead = FileSystem.getAllStatistics().map{ (stats) =>
+          m.fileSystemBytesRead = FileSystem.getAllStatistics().map { stats =>
             (stats.getScheme -> stats.getBytesRead)
           }.toMap
-          m.fileSystemBytesWritten = FileSystem.getAllStatistics().map{ (stats) =>
+          m.fileSystemBytesWritten = FileSystem.getAllStatistics().map { stats =>
             (stats.getScheme -> stats.getBytesWritten)
           }.toMap
         }

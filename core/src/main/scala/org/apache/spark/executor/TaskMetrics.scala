@@ -53,7 +53,9 @@ class TaskMetrics extends Serializable {
    */
   var shuffleWriteMetrics: Option[ShuffleWriteMetrics] = None
 
-  var fileSystemBytesRead: Map[String,Long] = _
+  var fileSystemBytesRead: Map[String, Long] = _
+
+  var fileSystemBytesWritten: Map[String, Long] = _
 }
 
 object TaskMetrics {
