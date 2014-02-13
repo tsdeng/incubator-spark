@@ -107,10 +107,11 @@ private[spark] class YarnClientSchedulerBackend(
     }
   }
 
-  override def stop() {
-    super.stop()
+  override def stop() = {
+    val executorsStats = super.stop()
     client.stop()
     logInfo("Stoped")
+    executorsStats
   }
 
 }

@@ -18,6 +18,7 @@
 package org.apache.spark.scheduler
 
 import org.apache.spark.SparkContext
+import org.apache.spark.scheduler.cluster.CoarseGrainedClusterMessages.ExecutorFinalState
 
 /**
  * A backend interface for scheduling systems that allows plugging in different ones under
@@ -26,7 +27,7 @@ import org.apache.spark.SparkContext
  */
 private[spark] trait SchedulerBackend {
   def start(): Unit
-  def stop(): Unit
+  def stop(): Option[Iterable[ExecutorFinalState]]
   def reviveOffers(): Unit
   def defaultParallelism(): Int
 

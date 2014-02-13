@@ -64,6 +64,9 @@ private[spark] object CoarseGrainedClusterMessages {
 
   case object StopExecutors extends CoarseGrainedClusterMessage
 
+  //replied message for StopExecutors
+  case class ExecutorFinalState(hdfsRead: Long) extends CoarseGrainedClusterMessage
+
   case class RemoveExecutor(executorId: String, reason: String) extends CoarseGrainedClusterMessage
 
 }

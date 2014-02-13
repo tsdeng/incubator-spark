@@ -33,6 +33,7 @@ import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.partial.{ApproximateActionListener, ApproximateEvaluator, PartialResult}
 import org.apache.spark.storage.{BlockId, BlockManager, BlockManagerMaster, RDDBlockId}
 import org.apache.spark.util.{MetadataCleaner, MetadataCleanerType, TimeStampedHashMap}
+import org.apache.spark.scheduler.cluster.CoarseGrainedClusterMessages.ExecutorFinalState
 
 /**
  * The high-level scheduling layer that implements stage-oriented scheduling. It computes a DAG of
@@ -90,6 +91,11 @@ class DAGScheduler(
   // Called by TaskScheduler when an executor fails.
   def executorLost(execId: String) {
     eventProcessActor ! ExecutorLost(execId)
+  }
+
+  //Called by ClusterScheduler(TaskScheduler) when executors are shutting down
+  def executorsStopped(stats: Option[Iterable[ExecutorFinalState]]) {
+    eventQueue.put(ExecutorsStopped(stats))
   }
 
   // Called by TaskScheduler when a host is added
@@ -570,6 +576,9 @@ class DAGScheduler(
 
       case ExecutorGained(execId, host) =>
         handleExecutorGained(execId, host)
+
+      case executorsStopped @ ExecutorsStopped(stats) =>
+        listenerBus.post(SparkListenerExecutorsStopped(stats))
 
       case ExecutorLost(execId) =>
         handleExecutorLost(execId)
@@ -1107,11 +1116,11 @@ class DAGScheduler(
   }
 
   def stop() {
+    taskSched.stop()
     if (eventProcessActor != null) {
       eventProcessActor ! StopDAGScheduler
     }
     metadataCleaner.cancel()
-    taskSched.stop()
     listenerBus.stop()
   }
 }

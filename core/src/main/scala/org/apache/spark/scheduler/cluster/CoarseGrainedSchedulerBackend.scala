@@ -1,3 +1,5 @@
+import akka.remote.{RemoteClientShutdown, RemoteClientDisconnected, RemoteClientLifeCycleEvent}
+import akka.util.{Timeout, Duration}
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -24,6 +26,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.actor._
+import akka.dispatch.{ExecutionContext, Future, Await}
 import akka.pattern.ask
 import akka.remote.{DisassociatedEvent, RemotingLifecycleEvent}
 
@@ -110,10 +113,12 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, actorSystem: A
 
       case StopExecutors =>
         logInfo("Asking each executor to shut down")
-        for (executor <- executorActor.values) {
-          executor ! StopExecutor
+        implicit val timeout = Timeout(5 seconds)
+        val replies: Iterable[Future[Any]] = for (executor <- executorActor.values) yield {
+          executor ? StopExecutor
         }
-        sender ! true
+        implicit val executor = context.dispatcher
+        sender ! Future.sequence(replies)
 
       case RemoveExecutor(executorId, reason) =>
         removeExecutor(executorId, reason)
@@ -175,21 +180,25 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, actorSystem: A
       Props(new DriverActor(properties)), name = CoarseGrainedSchedulerBackend.ACTOR_NAME)
   }
 
-  def stopExecutors() {
+  def stopExecutors() = {
+    var executorStats:Option[Iterable[ExecutorFinalState]] = None
     try {
       if (driverActor != null) {
         logInfo("Shutting down all executors")
         val future = driverActor.ask(StopExecutors)(timeout)
-        Await.ready(future, timeout)
+        val responsesFuture = Await.result(future, timeout).asInstanceOf[Future[Iterable[ExecutorFinalState]]]
+        executorStats = Some(Await.result(responsesFuture, timeout))
+        logInfo("Executors recieved shutting down messages")
       }
     } catch {
       case e: Exception =>
         throw new SparkException("Error asking standalone scheduler to shut down executors", e)
     }
+    executorStats
   }
 
-  override def stop() {
-    stopExecutors()
+  override def stop() = {
+    val executorStats = stopExecutors()
     try {
       if (driverActor != null) {
         val future = driverActor.ask(StopDriver)(timeout)
@@ -199,6 +208,7 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, actorSystem: A
       case e: Exception =>
         throw new SparkException("Error stopping standalone scheduler's driver actor", e)
     }
+    executorStats
   }
 
   override def reviveOffers() {

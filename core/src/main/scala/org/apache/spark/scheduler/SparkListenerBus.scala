@@ -55,6 +55,8 @@ private[spark] class SparkListenerBus extends Logging {
             sparkListeners.foreach(_.onTaskGettingResult(taskGettingResult))
           case taskEnd: SparkListenerTaskEnd =>
             sparkListeners.foreach(_.onTaskEnd(taskEnd))
+          case executorsStopped: SparkListenerExecutorsStopped =>
+            sparkListeners.foreach(_.onExecutorsStopped(executorsStopped))
           case SparkListenerShutdown =>
             // Get out of the while loop and shutdown the daemon thread
             return

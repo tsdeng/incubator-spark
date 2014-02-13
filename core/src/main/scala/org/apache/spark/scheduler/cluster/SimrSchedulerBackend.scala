@@ -60,7 +60,7 @@ private[spark] class SimrSchedulerBackend(
     fs.rename(tmpPath, filePath)
   }
 
-  override def stop() {
+  override def stop() = {
     val conf = new Configuration()
     val fs = FileSystem.get(conf)
     fs.delete(new Path(driverFilePath), false)

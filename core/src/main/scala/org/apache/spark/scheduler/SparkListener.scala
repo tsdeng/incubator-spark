@@ -21,6 +21,7 @@ import java.util.Properties
 import org.apache.spark.util.{Utils, Distribution}
 import org.apache.spark.{Logging, TaskEndReason}
 import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.scheduler.cluster.CoarseGrainedClusterMessages.ExecutorFinalState
 
 sealed trait SparkListenerEvents
 
@@ -45,6 +46,9 @@ case class SparkListenerJobEnd(job: ActiveJob, jobResult: JobResult)
 
 /** An event used in the listener to shutdown the listener daemon thread. */
 private[scheduler] case object SparkListenerShutdown extends SparkListenerEvents
+
+case class SparkListenerExecutorsStopped(stats:Option[Iterable[ExecutorFinalState]])
+  extends SparkListenerEvents
 
 /**
  * Interface for listening to events from the Spark scheduler.
@@ -85,6 +89,11 @@ trait SparkListener {
    * Called when a job ends
    */
   def onJobEnd(jobEnd: SparkListenerJobEnd) { }
+
+  /**
+   * Called when executors are stopped, for getting stats from executors
+   */
+  def onExecutorsStopped(executorsStopped:SparkListenerExecutorsStopped) { }
 
 }
 

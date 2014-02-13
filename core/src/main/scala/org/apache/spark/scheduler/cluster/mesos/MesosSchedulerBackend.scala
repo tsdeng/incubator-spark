@@ -303,10 +303,11 @@ private[spark] class MesosSchedulerBackend(
     }
   }
 
-  override def stop() {
+  override def stop() = {
     if (driver != null) {
       driver.stop()
     }
+    None
   }
 
   override def reviveOffers() {

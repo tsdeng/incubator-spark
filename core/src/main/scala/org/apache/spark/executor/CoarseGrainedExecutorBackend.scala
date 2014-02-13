@@ -26,6 +26,9 @@ import org.apache.spark.{SparkConf, SparkContext, Logging}
 import org.apache.spark.TaskState.TaskState
 import org.apache.spark.deploy.worker.WorkerWatcher
 import org.apache.spark.scheduler.cluster.CoarseGrainedClusterMessages._
+import org.apache.spark.util.{Utils, AkkaUtils}
+import org.apache.hadoop.fs.FileSystem
+import scala.collection.JavaConversions._
 import org.apache.spark.util.{AkkaUtils, Utils}
 
 private[spark] class CoarseGrainedExecutorBackend(
@@ -80,10 +83,15 @@ private[spark] class CoarseGrainedExecutorBackend(
       logError(s"Driver $x disassociated! Shutting down.")
       System.exit(1)
 
-    case StopExecutor =>
+    case StopExecutor => {
+      val hdfsRead = FileSystem.getAllStatistics().find { stats =>
+        stats.getScheme == "hdfs"
+      }.map(_.getBytesRead)
+      sender ! ExecutorFinalState(hdfsRead.getOrElse(0L))
       logInfo("Driver commanded a shutdown")
       context.stop(self)
       context.system.shutdown()
+    }
   }
 
   override def statusUpdate(taskId: Long, state: TaskState, data: ByteBuffer) {
