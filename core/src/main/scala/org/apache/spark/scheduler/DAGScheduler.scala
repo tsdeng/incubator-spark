@@ -93,7 +93,7 @@ class DAGScheduler(
     eventProcessActor ! ExecutorLost(execId)
   }
 
-  //Called by ClusterScheduler(TaskScheduler) when executors are shutting down
+  // Called by ClusterScheduler(TaskScheduler) when executors are shutting down
   def executorsStopped(stats: Option[Iterable[ExecutorFinalState]]) {
     eventQueue.put(ExecutorsStopped(stats))
   }

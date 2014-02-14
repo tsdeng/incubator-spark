@@ -93,7 +93,7 @@ trait SparkListener {
   /**
    * Called when executors are stopped, for getting stats from executors
    */
-  def onExecutorsStopped(executorsStopped:SparkListenerExecutorsStopped) { }
+  def onExecutorsStopped(executorsStopped: SparkListenerExecutorsStopped) { }
 
 }
 
